@@ -11,8 +11,10 @@ let dsl = new DSL(Router);
 dsl.map(r => {
     r.route("a");
     r.route("b", { path: 'bee' });
-    r.route("c", (r) => {
-        r.route('c-a');
+    r.route("c", function(r) {
+        r.route('c-a', (r) => {
+            r.route('c-a-a');
+        });
     });
 })
 

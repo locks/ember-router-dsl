@@ -18,7 +18,7 @@ class DSL {
 
         if (isFunction(fn)) {
             let dsl = new DSL(this.router);
-            dsl.route(options);
+            
             this.push({ dsl, options });
             fn(dsl);    
         } else {
