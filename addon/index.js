@@ -37,8 +37,6 @@ class DSL {
     
     generate(dsl) {
         dsl.routes.forEach(r => {
-            console.log(r, "=>", this);
-            
             if (r.constructor.name !== "Array") {
                 this.route(...r.options, function() {
                     dsl.generate.bind(this)(r.dsl);
