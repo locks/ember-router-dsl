@@ -1,14 +1,22 @@
 import Ember from 'ember';
 import config from './config/environment';
-import { DSL } from 'ember-router-dsl';
+import { Router, route } from 'ember-router-dsl';
 
-const Router = Ember.Router.extend({
-  location: config.locationType
+const router = new Router({
+    location: config.locationType
 });
 
-let dsl = new DSL(Router);
-
-dsl.map(r => {
+export default router.map(r => {
+    route("zero", () => {
+        route("one", () => {
+            route("two");
+        });
+    });
+    route("bulbasaur", function() {
+        route("ivysaur", () => {
+            route("venosaur");
+        });
+    })
     r.route("a");
     r.route("b", { path: 'bee' });
     r.route("c", function(r) {
@@ -16,6 +24,4 @@ dsl.map(r => {
             r.route('c-a-a');
         });
     });
-})
-
-export default Router;
+});
