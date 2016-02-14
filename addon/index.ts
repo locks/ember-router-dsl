@@ -2,6 +2,7 @@ import Ember from 'ember';
 const { Router } = Ember;
 
 interface Router {
+    extend(...options: Array<{}>);
     map(fn: Function): void;
 }
 
@@ -76,7 +77,7 @@ class Route {
 class DSL {
     constructor(public router: Router, public routes: Array<any> = []) {}
 
-    push(route: Route | Array<any>): void {
+    private push(route: Route | Array<any>): void {
         this.routes.push(route);
     }
 
@@ -104,11 +105,11 @@ class DSL {
 
             dsl.generateGlobal.bind(this)(dsl, rootContext);
         });
-
+        
         return this.router;
     }
 
-    generate(dsl: DSL) {
+    private generate(dsl: DSL) {
         dsl.routes.forEach(r => {
             if (r.constructor.name !== "Array") {
                 this.route(...r.options, function() {
@@ -120,7 +121,7 @@ class DSL {
         });
     }
 
-    generateGlobal(dsl: DSL, ctx: Context) {
+    private generateGlobal(dsl: DSL, ctx: Context) {
         ctx.routes.forEach(r => {
             if (ctx.children.length > 0) {
                 this.route(...r, function() {
