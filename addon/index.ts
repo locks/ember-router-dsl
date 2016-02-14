@@ -1,39 +1,44 @@
 import Ember from 'ember';
+const { Router } = Ember;
+
+interface Router {
+    map(fn: Function): void;
+}
 
 let rootContext = null;
 let contextStack = [];
 
-function currentContext() {
+function currentContext(): Context {
     return contextStack[contextStack.length - 1];
 }
-function pushContext(ctx) {
+function pushContext(ctx: Context): void {
     contextStack.push(ctx);
 }
-function popContext() {
-    contextStack.pop();
+function popContext(): Context {
+    return contextStack.pop();
 }
 
 class Context {
-    constructor() {
-        this.children = [];
-        this.routes = [];
+    constructor(public children: Array<Context> = [],
+                public routes: Array<Array<any>> = []) {}
+    
+    pushRoute(options: Array<any>): void {
+        this.routes.push(options);
     }
     
-    push(route) {
-        this.routes.push(route);
+    pushChild(ctx: Context): void {
+        this.children.push(ctx);
     }
 }
 
-export function route(...args) {
+function route(...args): void {
         let [fn, ...options] = args.reverse();
         options = options.reverse();
-        
+
         if (isFunction(fn)) {
-            console.log("não");
             let ctx = new Context();
-     console.log("ctx", currentContext());       
-            currentContext().children.push(ctx);
-            currentContext().routes.push(options);
+            currentContext().pushChild(ctx);
+            currentContext().pushRoute(options);
             pushContext(ctx);
             fn();
             popContext();
@@ -42,68 +47,68 @@ export function route(...args) {
         }
 }
 
-const { Router } = Ember;
-
-function isFunction(fn) {
+function isFunction(fn): Boolean {
     return fn.constructor.name === "Function";
 }
 
 class DSLRouter {
-    constructor() {
-        this.router = Router.extend(...arguments);
-        
-        console.log(this.router);
+    constructor(...args) {
+        this.router = Router.extend(...args);
     }
     
-    map() {
+    router: Router;
+
+    map(fn: Function): Router {
         rootContext = new Context();
         contextStack.push(rootContext);
-        
+
         let dsl = new DSL(this.router);
-        dsl.map(...arguments);
-        
+        dsl.map(fn);
+
         return this.router;
     }
 }
 
+class Route {
+    constructor(public dsl: DSL, public options: Array<any>) {}
+}
+
 class DSL {
-    constructor(router) {
-        this.router = router;
-        this.routes = [];
-    }
-    
-    push(route) {
+    constructor(public router: Router, public routes: Array<any> = []) {}
+
+    push(route: Route | Array<any>): void {
         this.routes.push(route);
     }
-    
-    route(...args) {
+
+    route(...args): void {
         let [ fn, ...options ] = args.reverse();
         options = options.reverse();
 
         if (isFunction(fn)) {
-            let dsl = new DSL();
-            
-            this.push({ dsl, options });
-            fn(dsl);    
+            let dsl = new DSL(this.router);
+            let route = new Route(dsl, options);
+
+            this.push(route);
+            fn(dsl);
         } else {
             this.push([...options, fn]);
         }
     }
-    
-    map(fn) {
+
+    map(fn: Function) {
         let dsl = this;
         fn(dsl);
 
         this.router.map(function() {
             dsl.generate.bind(this)(dsl);
-            
+
             dsl.generateGlobal.bind(this)(dsl, rootContext);
         });
-        
+
         return this.router;
     }
-    
-    generate(dsl) {
+
+    generate(dsl: DSL) {
         dsl.routes.forEach(r => {
             if (r.constructor.name !== "Array") {
                 this.route(...r.options, function() {
@@ -114,8 +119,8 @@ class DSL {
             }
         });
     }
-    
-    generateGlobal(dsl, ctx) {
+
+    generateGlobal(dsl: DSL, ctx: Context) {
         ctx.routes.forEach(r => {
             if (ctx.children.length > 0) {
                 this.route(...r, function() {
@@ -130,4 +135,4 @@ class DSL {
     }
 }
 
-export { DSLRouter as Router };
+export { DSLRouter as Router, route };

@@ -43,7 +43,9 @@
     "ember-addon"
   ],
   "dependencies": {
-    "ember-cli-babel": "^5.1.5"
+    "ember-cli-babel": "^5.1.5",
+    "ember-cli-typescript-compiler": "0.7.0",
+    "typescript": "^1.8.0"
   },
   "ember-addon": {
     "configPath": "tests/dummy/config"

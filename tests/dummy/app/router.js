@@ -1,4 +1,3 @@
-import Ember from 'ember';
 import config from './config/environment';
 import { Router, route } from 'ember-router-dsl';
 
@@ -16,7 +15,7 @@ export default router.map(r => {
         route("ivysaur", () => {
             route("venosaur");
         });
-    })
+    });
     r.route("a");
     r.route("b", { path: 'bee' });
     r.route("c", function(r) {
